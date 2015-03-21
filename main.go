@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./torrent"
 	"flag"
 	"log"
 	"math"
@@ -10,7 +11,6 @@ import (
 	"runtime/pprof"
 
 	socks "github.com/hailiang/gosocks"
-	"github.com/jackpal/Taipei-Torrent/torrent"
 	"github.com/jackpal/Taipei-Torrent/tracker"
 )
 

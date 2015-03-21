@@ -142,6 +142,7 @@ type TorrentSession struct {
 }
 
 func NewTorrentSession(flags *TorrentFlags, torrent string, listenPort uint16) (ts *TorrentSession, err error) {
+	fmt.Println("Starting a torrent Session")
 	t := &TorrentSession{
 		flags:                flags,
 		peers:                make(map[string]*peerState),
@@ -727,6 +728,10 @@ func (t *TorrentSession) ChoosePiece(p *peerState) (piece int) {
 	if piece == -1 {
 		piece = t.checkRange(p, 0, start)
 	}
+	fmt.Println("###")
+	fmt.Println("It chose Piece number ")
+	fmt.Println(piece)
+	fmt.Println("###")
 	return
 }
 
@@ -770,7 +775,7 @@ func (t *TorrentSession) requestBlockImp(p *peerState, piece int, block int, req
 			length = left
 		}
 	}
-	// log.Println("Requesting block", piece, ".", block, length, request)
+	//fmt.Println("Requesting block", piece, ".", block, length, request)
 	req[0] = opcode
 	uint32ToBytes(req[1:5], uint32(piece))
 	uint32ToBytes(req[5:9], uint32(begin))
@@ -788,6 +793,7 @@ func (t *TorrentSession) requestBlockImp(p *peerState, piece int, block int, req
 func (t *TorrentSession) RecordBlock(p *peerState, piece, begin, length uint32) (err error) {
 	block := begin / STANDARD_BLOCK_LENGTH
 	// log.Println("Received block", piece, ".", block)
+
 	requestIndex := (uint64(piece) << 32) | uint64(begin)
 	delete(p.our_requests, requestIndex)
 	v, ok := t.activePieces[int(piece)]
