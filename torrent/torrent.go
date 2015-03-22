@@ -729,7 +729,7 @@ func (t *TorrentSession) ChoosePiece(p *peerState) (piece int) {
 		piece = t.checkRange(p, 0, start)
 	}
 	fmt.Println("###")
-	fmt.Println("It chose Piece number ")
+	fmt.Print("It chose Piece number ")
 	fmt.Println(piece)
 	fmt.Println("###")
 	return
