@@ -173,6 +173,7 @@ func newTrackerPeerListenAddress(requestRemoteAddr string, params *announceParam
 // Start a tracker and run it until interrupted.
 func StartTracker(addr string, torrentFiles []string) (err error) {
 	t := NewTracker()
+	println("Starting tracker...")
 	// TODO(jackpal) Allow caller to choose port number
 	t.Addr = addr
 	for _, torrentFile := range torrentFiles {

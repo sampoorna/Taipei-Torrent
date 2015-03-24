@@ -723,23 +723,20 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 
 func (t *TorrentSession) CycleReadyList() (err error) {
 	fmt.Println("In Cycle list")
-	fmt.Print("At this time Ready List is : ")
-	fmt.Println(t.readylist)
-	fmt.Print("Active list is : ")
-	fmt.Println(t.activelist)
-	for i, element := range t.readylist {
+	fmt.Println("At this time Ready List is : ", t.readylist)
+	fmt.Println("Active list is : ", t.activelist)
+	for i, peer := range t.readylist {
 		if (!t.pieceSet.IsSet(t.activepieceindex)) && t.readylist[i].have.IsSet(t.activepieceindex) {
-			//we have found active piece in peer's bitset    in this peer is t.readylist[i]
-			fmt.Print(" Piece number ")
-			fmt.Print(t.activepieceindex)
-			fmt.Println(" found")
+			// we have found active piece in peer's bitset
+			// in this peer is t.readylist[i]
+			fmt.Println("Piece number ", t.activepieceindex, " found")
 			delete(t.readylist, t.readylist[i].address) //delete this peer from ready list
-			t.activelist[i] = element
+			t.activelist[i] = peer
 			piece := t.activepieceindex
 			pieceLength := t.pieceLength(piece)
 			pieceCount := (pieceLength + STANDARD_BLOCK_LENGTH - 1) / STANDARD_BLOCK_LENGTH
 			t.activePieces[piece] = &ActivePiece{make([]int, pieceCount), pieceLength}
-			err = t.RequestBlock2(element, piece, false) //Request the Block
+			err = t.RequestBlock2(peer, piece, false) // Request the Block
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -749,15 +746,15 @@ func (t *TorrentSession) CycleReadyList() (err error) {
 			}
 			t.failpeer = 0 // reset failed peer count
 			if err != io.EOF {
-				t.CycleReadyList() // recusrively call the Cycle function to start searching for the next piece
+				t.CycleReadyList() // recursively call the Cycle function to start searching for the next piece
 				return
 			}
 		} else {
-			//the peer did not have the block we want
+			// The peer did not have the block we want
 			t.failpeer++ // we increase fail peer counter because this was a peer that did not have the needed PIECE or there was no other peer in the ready list
 			t.readylist[i].SetInterested(false)
 			if t.failpeer > t.failthreshold {
-				// CALL A FRESH PEER FUNCTION
+				// TODO: CALL A FRESH PEER FUNCTION
 				fmt.Println(" Fail Peer . Peer did not have the bit we were looking for")
 			}
 		}
@@ -837,8 +834,7 @@ func (t *TorrentSession) requestBlockImp(p *peerState, piece int, block int, req
 func (t *TorrentSession) RecordBlock(p *peerState, piece, begin, length uint32) (err error) {
 	block := begin / STANDARD_BLOCK_LENGTH
 	// log.Println("Received block", piece, ".", block)
-	fmt.Print("Receieved Block : ")
-	fmt.Println(piece)
+	fmt.Println("Received Block : ", piece)
 	requestIndex := (uint64(piece) << 32) | uint64(begin)
 	delete(p.our_requests, requestIndex)
 	v, ok := t.activePieces[int(piece)]
@@ -857,6 +853,7 @@ func (t *TorrentSession) RecordBlock(p *peerState, piece, begin, length uint32) 
 		}
 		t.si.Downloaded += uint64(length)
 		if v.isComplete() {
+			fmt.Println("I'm in v.isComplete!")
 			delete(t.activePieces, int(piece))
 			ok, err = checkPiece(t.fileStore, t.totalSize, t.M, int(piece))
 			if !ok || err != nil {

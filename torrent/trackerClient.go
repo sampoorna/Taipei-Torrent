@@ -33,6 +33,7 @@ func startTrackerClient(dialer Dialer, announce string, announceList [][]string,
 		// Convert the plain announce into an announceList to simplify logic
 		announceList = [][]string{[]string{announce}}
 	}
+	log.Println("I'm inside startTrackerClient!!")
 
 	if announceList != nil {
 		announceList = shuffleAnnounceList(announceList)
