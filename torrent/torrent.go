@@ -799,7 +799,7 @@ func (t *TorrentSession) RecordBlock(p *peerState, piece, begin, length uint32) 
 	v, ok := t.activePieces[int(piece)]
 	if ok {
 		requestCount := v.recordBlock(int(block))
-
+		log.Println("v= ", v)
 		if requestCount > 1 {
 			// Someone else has also requested this, so send cancel notices
 			for _, peer := range t.peers {
@@ -1033,6 +1033,7 @@ func (t *TorrentSession) generalMessage(message []byte, p *peerState) (err error
 		}
 		p.creditDownload(int64(length))
 		t.RecordBlock(p, index, begin, uint32(length))
+
 		err = t.RequestBlock(p)
 	case CANCEL:
 		// log.Println("cancel")

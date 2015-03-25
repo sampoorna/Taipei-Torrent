@@ -708,6 +708,16 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 	if !t.si.HaveTorrent { // We can't request a block without a torrent
 		return
 	}
+	for k, _ := range t.activePieces {
+		if p.have.IsSet(k) {
+			err = t.RequestBlock2(p, k, false)
+			if err != io.EOF {
+				return
+			}
+		}
+	}
+	//assuming that we already have an active Piece so we need to download
+
 	t.readylist[p.address] = p //Adding Peer to ReadyList
 	fmt.Print("Added Peer to ReadyList: ")
 	fmt.Println(p.address)
@@ -736,7 +746,8 @@ func (t *TorrentSession) CycleReadyList() (err error) {
 			pieceLength := t.pieceLength(piece)
 			pieceCount := (pieceLength + STANDARD_BLOCK_LENGTH - 1) / STANDARD_BLOCK_LENGTH
 			t.activePieces[piece] = &ActivePiece{make([]int, pieceCount), pieceLength}
-			err = t.RequestBlock2(peer, piece, false) // Request the Block
+			err = t.RequestBlock2(peer, t.activepieceindex, false)
+
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -840,7 +851,7 @@ func (t *TorrentSession) RecordBlock(p *peerState, piece, begin, length uint32) 
 	v, ok := t.activePieces[int(piece)]
 	if ok {
 		requestCount := v.recordBlock(int(block))
-		log.Println("Hitting recordBlock ", requestCount)
+		log.Println("v= ", v)
 		if requestCount > 1 {
 			// Someone else has also requested this, so send cancel notices
 			for _, peer := range t.peers {
