@@ -142,7 +142,7 @@ type TorrentSession struct {
 
 	//Edit to Torrent Session By Wali
 
-	readylist        map[string]*peerState
+	readyList        map[string]*peerState
 	activelist       map[string]*peerState
 	activepieceindex int
 	failthreshold    int
@@ -160,7 +160,7 @@ func NewTorrentSession(flags *TorrentFlags, torrent string, listenPort uint16) (
 		torrentFile:          torrent,
 		chokePolicy:          &ClassicChokePolicy{},
 		chokePolicyHeartbeat: time.Tick(10 * time.Second),
-		readylist:            make(map[string]*peerState),
+		readyList:            make(map[string]*peerState),
 		activelist:           make(map[string]*peerState),
 		// Edits to Torrent Session
 	}
@@ -708,9 +708,15 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 	if !t.si.HaveTorrent { // We can't request a block without a torrent
 		return
 	}
+	percentComplete := 0
 	for k, _ := range t.activePieces {
+		percentComplete = float32(t.goodPieces*100) / float32(t.totalPieces)
 		if p.have.IsSet(k) {
-			err = t.RequestBlock2(p, k, false)
+			if percentComplete >= 90 {
+				err = t.RequestBlock2(p, k, true)
+			} else {
+				err = t.RequestBlock2(p, k, false)
+			}
 			if err != io.EOF {
 				return
 			}
@@ -718,8 +724,8 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 	}
 	//assuming that we already have an active Piece so we need to download
 
-	t.readylist[p.address] = p //Adding Peer to ReadyList
-	fmt.Print("Added Peer to ReadyList: ")
+	t.readyList[p.address] = p //Adding Peer to readyList
+	fmt.Print("Added Peer to readyList: ")
 	fmt.Println(p.address)
 	if returnfrompiece { // if function is called from successful download piece
 		fmt.Println("Deleted Peer from ActiveList : ")
@@ -727,26 +733,34 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 		delete(t.activelist, p.address) //remove it from activelist
 	}
 
-	err = t.CycleReadyList()
+	err = t.cycleReadyList()
 	return
 }
 
-func (t *TorrentSession) CycleReadyList() (err error) {
-	fmt.Println("In Cycle list")
-	fmt.Println("At this time Ready List is : ", t.readylist)
+func (t *TorrentSession) cycleReadyList() (err error) {
+	percentComplete := float32(t.goodPieces*100) / float32(t.totalPieces)
+	fmt.Println("In cycle list")
+	fmt.Println("At this time Ready List is : ", t.readyList)
 	fmt.Println("Active list is : ", t.activelist)
-	for i, peer := range t.readylist {
-		if (!t.pieceSet.IsSet(t.activepieceindex)) && t.readylist[i].have.IsSet(t.activepieceindex) {
+	fmt.Println("Percent complete ", percentComplete, "%")
+	for i, peer := range t.readyList {
+		if (!t.pieceSet.IsSet(t.activepieceindex)) && t.readyList[i].have.IsSet(t.activepieceindex) {
 			// we have found active piece in peer's bitset
-			// in this peer is t.readylist[i]
+			// in this peer is t.readyList[i]
 			fmt.Println("Piece number ", t.activepieceindex, " found")
-			delete(t.readylist, t.readylist[i].address) //delete this peer from ready list
+			delete(t.readyList, t.readyList[i].address) //delete this peer from ready list
 			t.activelist[i] = peer
 			piece := t.activepieceindex
 			pieceLength := t.pieceLength(piece)
 			pieceCount := (pieceLength + STANDARD_BLOCK_LENGTH - 1) / STANDARD_BLOCK_LENGTH
 			t.activePieces[piece] = &ActivePiece{make([]int, pieceCount), pieceLength}
-			err = t.RequestBlock2(peer, t.activepieceindex, false)
+			percentComplete = float32(t.goodPieces*100) / float32(t.totalPieces)
+			if percentComplete >= 90{
+				err = t.RequestBlock2(peer, t.activepieceindex, true)
+			} else{
+				err = t.RequestBlock2(peer, t.activepieceindex, false)
+			}
+			
 
 			if err != nil {
 				fmt.Println(err)
@@ -757,16 +771,16 @@ func (t *TorrentSession) CycleReadyList() (err error) {
 			}
 			t.failpeer = 0 // reset failed peer count
 			if err != io.EOF {
-				t.CycleReadyList() // recursively call the Cycle function to start searching for the next piece
+				t.cycleReadyList() // recursively call the Cycle function to start searching for the next piece
 				return
 			}
 		} else {
 			// The peer did not have the block we want
 			t.failpeer++ // we increase fail peer counter because this was a peer that did not have the needed PIECE or there was no other peer in the ready list
-			t.readylist[i].SetInterested(false)
+			t.readyList[i].SetInterested(false)
 			if t.failpeer > t.failthreshold {
 				// TODO: CALL A FRESH PEER FUNCTION
-				fmt.Println(" Fail Peer . Peer did not have the bit we were looking for")
+				fmt.Println("Fail Peer. Peer did not have the bit we were looking for.")
 			}
 		}
 	}
@@ -781,8 +795,7 @@ func (t *TorrentSession) ChoosePiece(p *peerState) (piece int) {
 		piece = t.checkRange(p, 0, start)
 	}
 	fmt.Println("###")
-	fmt.Print("It chose Piece number ")
-	fmt.Println(piece)
+	fmt.Println("It chose Piece number ", piece)
 	fmt.Println("###")
 	return
 }
