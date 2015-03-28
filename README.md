@@ -5,10 +5,15 @@ Our measurements will be done through measuring the number of 'written' blocks p
 Different measurements we will be performing the torrent download:
 - without any strategy, using randomized block gets
 - with getting the recent piece first
-- with getting the recent piece first, and if sufficient amount is buffered letting it get random pieces of the torrent untill the buffer has gone down.
+- with getting the recent piece first, and if sufficient amount is buffered letting it get random pieces of the torrent until the buffer has gone down.
 - with getting recent pieces first using endgame mode, once buffered, allowing normal download
 
 We'd like to graph these both with unrestricted bandwidth, and with restricted bandwidths - to test effectiveness in countries with generally less effective internet.
+
+Profiling:
+- time elapsed
+- speed
+- useful blocks out of total blocks
 
 Taipei Torrent
 ==============
