@@ -1,3 +1,15 @@
+This is a modified version of Taipei Torrent - meant to test plausibility of streaming strategies using the BitTorrent protocol. 
+
+Our measurements will be done through measuring the number of 'written' blocks per second, and averaging that to determine the effective download rate. The reason we don't measure total download bandwidth is because partial blocks can be thrown away, and extra blocks may be send and discarded. We want an accurate measure of the file's download speed.
+
+Different measurements we will be performing the torrent download:
+- without any strategy, using randomized block gets
+- with getting the recent piece first
+- with getting the recent piece first, and if sufficient amount is buffered letting it get random pieces of the torrent untill the buffer has gone down.
+- with getting recent pieces first using endgame mode, once buffered, allowing normal download
+
+We'd like to graph these both with unrestricted bandwidth, and with restricted bandwidths - to test effectiveness in countries with generally less effective internet.
+
 Taipei Torrent
 ==============
 
