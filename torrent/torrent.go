@@ -710,7 +710,7 @@ func (t *TorrentSession) chokePeers() (err error) {
 	return
 }
 
-func (t *TorrentSession) RequestBlock(mode int, p *peerState, returnfrompiece bool) {
+func (t *TorrentSession) RequestBlock(mode int, p *peerState, returnfrompiece bool) (err error) {
 	/*
 		Mode Annotation :
 		1. Normal Mode that Came With Taipeh Torrent
@@ -718,12 +718,13 @@ func (t *TorrentSession) RequestBlock(mode int, p *peerState, returnfrompiece bo
 		3.  *Space to add more*
 	*/
 	if mode == 1 {
-		RequestBlockO(p)
+		err = t.RequestBlockO(p)
 		//Request Block O means Original
 	} else if mode == 2 {
-		RequestBlockS(p, returnfrompiece)
+		err = t.RequestBlockS(p, returnfrompiece)
 		// Request Block S means Streaming
 	}
+	return err
 }
 
 func (t *TorrentSession) RequestBlockS(p *peerState, returnfrompiece bool) (err error) {
@@ -733,7 +734,7 @@ func (t *TorrentSession) RequestBlockS(p *peerState, returnfrompiece bool) (err 
 	}
 	percentComplete := 0
 	for k, _ := range t.activePieces {
-		percentComplete = float32(t.goodPieces*100) / float32(t.totalPieces)
+		percentComplete = int(float32(t.goodPieces*100) / float32(t.totalPieces))
 		if p.have.IsSet(k) {
 			if percentComplete >= 90 {
 				err = t.RequestBlock2(p, k, true)
