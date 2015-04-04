@@ -152,11 +152,7 @@ type TorrentSession struct {
 	//Edit to Torrent Session By Wali
 	mode             int
 	readyList        map[string]*peerState
-<<<<<<< HEAD
 	activeList       map[string]*peerState
-=======
-	activelist       map[string]*peerState
->>>>>>> origin/master
 	activepieceindex int
 	failthreshold    int
 	failpeer         int
@@ -174,24 +170,10 @@ func NewTorrentSession(flags *TorrentFlags, torrent string, listenPort uint16) (
 		chokePolicy:          &ClassicChokePolicy{},
 		chokePolicyHeartbeat: time.Tick(10 * time.Second),
 		readyList:            make(map[string]*peerState),
-<<<<<<< HEAD
 		activeList:           make(map[string]*peerState),
 		// Edits to Torrent Session
 	}
 	//More Wali Edits
-=======
-		activelist:           make(map[string]*peerState),
-		// Edits to Torrent Session
-	}
-	//More Wali Edits
-	/*
-		Mode Annotation :
-		1. Normal Mode that Came With Taipeh Torrent
-		2. Streaming Mode with Pieces In-order Download
-		3.  *Space to add more*
-	*/
-	t.mode = 2
->>>>>>> origin/master
 	t.activepieceindex = 0
 	t.failpeer = 0
 	t.failthreshold = 20
@@ -750,112 +732,9 @@ func (t *TorrentSession) RequestBlock(mode int, p *peerState, returnfrompiece bo
 }
 */
 
-<<<<<<< HEAD
 func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err error) {
 	fmt.Println("In Request Block")
-=======
-func (t *TorrentSession) RequestBlock(mode int, p *peerState, returnfrompiece bool) (err error) {
-	/*
-		Mode Annotation :
-		1. Normal Mode that Came With Taipeh Torrent
-		2. Streaming Mode with Pieces In-order Download
-		3.  *Space to add more*
-	*/
-	if mode == 1 {
-		err = t.RequestBlockO(p)
-		//Request Block O means Original
-	} else if mode == 2 {
-		err = t.RequestBlockS(p, returnfrompiece)
-		// Request Block S means Streaming
-	}
-	return err
-}
 
-func (t *TorrentSession) RequestBlockS(p *peerState, returnfrompiece bool) (err error) {
-	fmt.Println("In Request Block")
-	if !t.si.HaveTorrent { // We can't request a block without a torrent
-		return
-	}
-	percentComplete := 0
-	for k, _ := range t.activePieces {
-		percentComplete = int(float32(t.goodPieces*100) / float32(t.totalPieces))
-		if p.have.IsSet(k) {
-			if percentComplete >= 90 {
-				err = t.RequestBlock2(p, k, true)
-			} else {
-				err = t.RequestBlock2(p, k, false)
-			}
-			if err != io.EOF {
-				return
-			}
-		}
-	}
-	//assuming that we already have an active Piece so we need to download
-
-	t.readyList[p.address] = p //Adding Peer to readyList
-	fmt.Print("Added Peer to readyList: ")
-	fmt.Println(p.address)
-	if returnfrompiece { // if function is called from successful download piece
-		fmt.Println("Deleted Peer from ActiveList : ")
-		fmt.Println(p.address)
-		delete(t.activelist, p.address) //remove it from activelist
-	}
-
-	err = t.cycleReadyList()
-	return
-}
-
-func (t *TorrentSession) cycleReadyList() (err error) {
-	percentComplete := float32(t.goodPieces*100) / float32(t.totalPieces)
-	fmt.Println("In cycle list")
-	fmt.Println("At this time Ready List is : ", t.readyList)
-	fmt.Println("Active list is : ", t.activelist)
-	fmt.Println("Percent complete ", percentComplete, "%")
-	for i, peer := range t.readyList {
-		if (!t.pieceSet.IsSet(t.activepieceindex)) && t.readyList[i].have.IsSet(t.activepieceindex) {
-			// we have found active piece in peer's bitset
-			// in this peer is t.readyList[i]
-			fmt.Println("Piece number ", t.activepieceindex, " found")
-			delete(t.readyList, t.readyList[i].address) //delete this peer from ready list
-			t.activelist[i] = peer
-			piece := t.activepieceindex
-			pieceLength := t.pieceLength(piece)
-			pieceCount := (pieceLength + STANDARD_BLOCK_LENGTH - 1) / STANDARD_BLOCK_LENGTH
-			t.activePieces[piece] = &ActivePiece{make([]int, pieceCount), pieceLength}
-			percentComplete = float32(t.goodPieces*100) / float32(t.totalPieces)
-			if percentComplete >= 95 {
-				err = t.RequestBlock2(peer, t.activepieceindex, true)
-			} else {
-				err = t.RequestBlock2(peer, t.activepieceindex, false)
-			}
-
-			if err != nil {
-				fmt.Println(err)
-			}
-			fmt.Println("Success in Requesting Block")
-			if (t.activepieceindex + 1) < t.totalPieces { // increment only if the next piece is lesser than total number
-				t.activepieceindex++ // Advance wanted piece to the one we want. Later we must replace this with a function that calculates next needed piece
-			}
-			t.failpeer = 0 // reset failed peer count
-			if err != io.EOF {
-				t.cycleReadyList() // recursively call the Cycle function to start searching for the next piece
-				return
-			}
-		} else {
-			// The peer did not have the block we want
-			t.failpeer++ // we increase fail peer counter because this was a peer that did not have the needed PIECE or there was no other peer in the ready list
-			t.readyList[i].SetInterested(false)
-			if t.failpeer > t.failthreshold {
-				// TODO: CALL A FRESH PEER FUNCTION
-				fmt.Println("Fail Peer. Peer did not have the bit we were looking for.")
-			}
-		}
-	}
-	return // we return without an error
-}
-
-func (t *TorrentSession) RequestBlockO(p *peerState) (err error) {
->>>>>>> origin/master
 	if !t.si.HaveTorrent { // We can't request a block without a torrent
 		return
 	}
@@ -1180,11 +1059,7 @@ func (t *TorrentSession) generalMessage(message []byte, p *peerState) (err error
 		for i := 0; i < MAX_OUR_REQUESTS; i++ {
 			//MAKING AN EDIT
 			//err = t.RequestBlock(p) (original)
-<<<<<<< HEAD
 			err = t.RequestBlock(p, false)
-=======
-			err = t.RequestBlock(t.mode, p, false)
->>>>>>> origin/master
 			if err != nil {
 				return
 			}
@@ -1282,11 +1157,7 @@ func (t *TorrentSession) generalMessage(message []byte, p *peerState) (err error
 		t.RecordBlock(p, index, begin, uint32(length))
 		//MAKING AN EDIT
 		//err = t.RequestBlock(p)
-<<<<<<< HEAD
 		err = t.RequestBlock(p, true)
-=======
-		err = t.RequestBlock(t.mode, p, true)
->>>>>>> origin/master
 	case CANCEL:
 		// log.Println("cancel")
 		if len(message) != 13 {
