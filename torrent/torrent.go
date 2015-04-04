@@ -50,7 +50,7 @@ const (
 		3. Streaming Mode with End-Game for first 10%, then Normal In-Order (with End-Game for last 10%)
 		4. *any others?*
 	*/
-	MODE = 1
+	MODE = 2
 	
 )
 
@@ -738,6 +738,7 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 	if !t.si.HaveTorrent { // We can't request a block without a torrent
 		return
 	}
+	
 	percentComplete := 0.2
 	for k, _ := range t.activePieces {
 		percentComplete = float64(t.goodPieces*100) / float64(t.totalPieces)
@@ -763,19 +764,46 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 			}
 		}
 	}
-	//assuming that we already have an active Piece so we need to download
+	
+	if MODE == 1{
+		// No active pieces. (Or no suitable active pieces.) Pick one
+		piece := t.ChoosePiece(p)
+		if piece < 0 {
+			// No unclaimed pieces. See if we can double-up on an active piece
+			for k, _ := range t.activePieces {
+				if p.have.IsSet(k) {
+					err = t.RequestBlock2(p, k, true)
+					if err != io.EOF {
+						return
+					}
+				}
+			}
+		}
+		if piece >= 0 {
+			pieceLength := t.pieceLength(piece)
+			pieceCount := (pieceLength + STANDARD_BLOCK_LENGTH - 1) / STANDARD_BLOCK_LENGTH
+			t.activePieces[piece] = &ActivePiece{make([]int, pieceCount), pieceLength}
+			return t.RequestBlock2(p, piece, false)
+		} else {
+			p.SetInterested(false)
+		}
+		return
+	} else {
+		
+		//assuming that we already have an active Piece so we need to download
 
-	t.readyList[p.address] = p //Adding Peer to readyList
-	fmt.Print("Added Peer to readyList: ")
-	fmt.Println(p.address)
-	if returnfrompiece { // if function is called from successful download piece
-		fmt.Println("Deleted Peer from activeList : ")
+		t.readyList[p.address] = p //Adding Peer to readyList
+		fmt.Print("Added Peer to readyList: ")
 		fmt.Println(p.address)
-		delete(t.activeList, p.address) //remove it from activeList
-	}
+		if returnfrompiece { // if function is called from successful download piece
+			fmt.Println("Deleted Peer from activeList : ")
+			fmt.Println(p.address)
+			delete(t.activeList, p.address) //remove it from activeList
+		}
 
-	err = t.cycleReadyList()
-	return
+		err = t.cycleReadyList()
+		return	
+	}
 }
 
 
@@ -912,7 +940,7 @@ func (t *TorrentSession) requestBlockImp(p *peerState, piece int, block int, req
 func (t *TorrentSession) RecordBlock(p *peerState, piece, begin, length uint32) (err error) {
 	block := begin / STANDARD_BLOCK_LENGTH
 	// log.Println("Received block", piece, ".", block)
-	fmt.Println("Received Block : ", piece)
+	fmt.Println("Received piece : ", piece)
 	requestIndex := (uint64(piece) << 32) | uint64(begin)
 	delete(p.our_requests, requestIndex)
 	v, ok := t.activePieces[int(piece)]
