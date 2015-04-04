@@ -35,7 +35,8 @@ Features:
 Additional Features:
 --------------------
 
-+ It can act as a tracker if you start it with the --createTracker flag
++ It can act as a tracker if you start it with the -createTracker flag
+=> Usage: go run main.go -createTracker=127.0.0.1:8080 nameOfTorrent.torrent
 
 FAQ:
 ----

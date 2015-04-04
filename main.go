@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"fmt"
 	"os/signal"
 	"path"
 	"runtime/pprof"
@@ -18,7 +19,7 @@ var (
 	cpuprofile    = flag.String("cpuprofile", "", "If not empty, collects CPU profile samples and writes the profile to the given file before the program exits")
 	memprofile    = flag.String("memprofile", "", "If not empty, writes memory heap allocations to the given file before the program exits")
 	createTorrent = flag.String("createTorrent", "", "If not empty, creates a torrent file from the given root. Writes to stdout")
-	createTracker = flag.String("createTracker", "", "Creates a tracker serving the given torrent file on the given address. Example --createTracker=:8080 to serve on port 8080.")
+	createTracker = flag.String("createTracker", "", "Creates a tracker serving the given torrent file on the given address. Example: [-createTracker=127.0.0.1:8080 nameOfTorrent.torrent] to serve on port 8080.")
 
 	port                = flag.Int("port", 7777, "Port to listen on. 0 means pick random port. Note that 6881 is blacklisted by some trackers.")
 	fileDir             = flag.String("fileDir", ".", "path to directory where files are stored")
@@ -60,6 +61,8 @@ func dialerFromFlags() torrent.Dialer {
 func main() {
 	flag.Usage = usage
 	flag.Parse()
+	
+	fmt.Println(flag.Args())
 
 	if *createTorrent != "" {
 		err := torrent.WriteMetaInfoBytes(*createTorrent, os.Stdout)
@@ -70,6 +73,7 @@ func main() {
 	}
 
 	if *createTracker != "" {
+		fmt.Println("Creating tracker...")
 		err := startTracker(*createTracker, flag.Args())
 		if err != nil {
 			log.Fatal("Tracker returned error:", err)
