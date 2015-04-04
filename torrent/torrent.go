@@ -738,9 +738,9 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 	if !t.si.HaveTorrent { // We can't request a block without a torrent
 		return
 	}
-	percentComplete := 0
+	percentComplete := 0.2
 	for k, _ := range t.activePieces {
-		percentComplete = float32(t.goodPieces*100) / float32(t.totalPieces)
+		percentComplete = float64(t.goodPieces*100) / float64(t.totalPieces)
 		if p.have.IsSet(k) {
 			if MODE == 1 {
 				err = t.RequestBlock2(p, k, false)
