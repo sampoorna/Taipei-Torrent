@@ -813,7 +813,6 @@ func (t *TorrentSession) cycleReadyList() (err error) {
 	percentComplete := float32(t.goodPieces*100) / float32(t.totalPieces)
 	fmt.Println("In cycle list")
 	fmt.Println("At this time Ready List is : ", t.readyList)
-	fmt.Println("Active list is : ", t.activeList)
 	fmt.Println("Percent complete ", percentComplete, "%")
 	for i, peer := range t.readyList {
 		if (!t.pieceSet.IsSet(t.activepieceindex)) && t.readyList[i].have.IsSet(t.activepieceindex) {
@@ -939,7 +938,14 @@ func (t *TorrentSession) requestBlockImp(p *peerState, piece int, block int, req
 func (t *TorrentSession) RecordBlock(p *peerState, piece, begin, length uint32) (err error) {
 	block := begin / STANDARD_BLOCK_LENGTH
 	// log.Println("Received block", piece, ".", block)
-	fmt.Println("Received piece : ", piece)
+	fmt.Print("=== ")
+	fmt.Print(block)
+	fmt.Print(" ")
+	fmt.Print(piece)
+	fmt.Print(" ")
+	now := time.Now()
+	fmt.Println(now)
+	//fmt.Println("Received piece : ", piece)
 	requestIndex := (uint64(piece) << 32) | uint64(begin)
 	delete(p.our_requests, requestIndex)
 	v, ok := t.activePieces[int(piece)]
