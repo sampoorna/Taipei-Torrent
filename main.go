@@ -3,10 +3,10 @@ package main
 import (
 	"./torrent"
 	"flag"
+	"fmt"
 	"log"
 	"math"
 	"os"
-	"fmt"
 	"os/signal"
 	"path"
 	"runtime/pprof"
@@ -61,7 +61,7 @@ func dialerFromFlags() torrent.Dialer {
 func main() {
 	flag.Usage = usage
 	flag.Parse()
-	
+
 	fmt.Println(flag.Args())
 
 	if *createTorrent != "" {

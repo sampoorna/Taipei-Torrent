@@ -51,7 +51,6 @@ const (
 		4. *any others?*
 	*/
 	MODE = 2
-	
 )
 
 const (
@@ -711,14 +710,15 @@ func (t *TorrentSession) chokePeers() (err error) {
 	}
 	return
 }
+
 /*
 func (t *TorrentSession) RequestBlock(mode int, p *peerState, returnfrompiece bool) {
-	
+
 		Mode Annotation :
 		1. Normal Mode that Came With Taipei Torrent
 		2. Streaming Mode with Pieces In-order Download
 		3.  *Space to add more*
-	
+
 	if mode == 1 {
 		RequestBlockO(p)
 		//Request Block O means Original
@@ -738,7 +738,7 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 	if !t.si.HaveTorrent { // We can't request a block without a torrent
 		return
 	}
-	
+
 	percentComplete := 0.2
 	for k, _ := range t.activePieces {
 		percentComplete = float64(t.goodPieces*100) / float64(t.totalPieces)
@@ -747,25 +747,25 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 				err = t.RequestBlock2(p, k, false)
 			} else if MODE == 2 {
 				if percentComplete >= 90 {
-				err = t.RequestBlock2(p, k, true)
-				} else  {
-				err = t.RequestBlock2(p, k, false)
+					err = t.RequestBlock2(p, k, true)
+				} else {
+					err = t.RequestBlock2(p, k, false)
 				}
-			} else if MODE == 3{
+			} else if MODE == 3 {
 				if percentComplete <= 5 || percentComplete >= 90 {
-				err = t.RequestBlock2(p, k, true)
-				} else  {
-				err = t.RequestBlock2(p, k, false)
+					err = t.RequestBlock2(p, k, true)
+				} else {
+					err = t.RequestBlock2(p, k, false)
 				}
 			}
-			
+
 			if err != io.EOF {
 				return
 			}
 		}
 	}
-	
-	if MODE == 1{
+
+	if MODE == 1 {
 		// No active pieces. (Or no suitable active pieces.) Pick one
 		piece := t.ChoosePiece(p)
 		if piece < 0 {
@@ -789,7 +789,7 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 		}
 		return
 	} else {
-		
+
 		//assuming that we already have an active Piece so we need to download
 
 		t.readyList[p.address] = p //Adding Peer to readyList
@@ -802,10 +802,9 @@ func (t *TorrentSession) RequestBlock(p *peerState, returnfrompiece bool) (err e
 		}
 
 		err = t.cycleReadyList()
-		return	
+		return
 	}
 }
-
 
 // Assigns a piece to download from a peer in the readyList
 // readyList: ready to download from
@@ -828,7 +827,7 @@ func (t *TorrentSession) cycleReadyList() (err error) {
 			pieceCount := (pieceLength + STANDARD_BLOCK_LENGTH - 1) / STANDARD_BLOCK_LENGTH
 			t.activePieces[piece] = &ActivePiece{make([]int, pieceCount), pieceLength}
 			percentComplete = float32(t.goodPieces*100) / float32(t.totalPieces)
-			if MODE == 1{
+			if MODE == 1 {
 				err = t.RequestBlock2(peer, t.activepieceindex, false)
 			} else if MODE == 2 {
 				if percentComplete >= 90 {
@@ -837,7 +836,7 @@ func (t *TorrentSession) cycleReadyList() (err error) {
 					err = t.RequestBlock2(peer, t.activepieceindex, false)
 				}
 			} else if MODE == 3 {
-				if percentComplete <=5 || percentComplete >= 90 {
+				if percentComplete <= 5 || percentComplete >= 90 {
 					err = t.RequestBlock2(peer, t.activepieceindex, true)
 				} else {
 					err = t.RequestBlock2(peer, t.activepieceindex, false)
@@ -1290,7 +1289,6 @@ func (t *TorrentSession) DoExtension(msg []byte, p *peerState) (err error) {
 	} else {
 		log.Println("Unknown extension: ", int(msg[0]))
 	}
-
 	return nil
 }
 
