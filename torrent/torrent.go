@@ -813,6 +813,7 @@ func (t *TorrentSession) cycleReadyList() (err error) {
 	percentComplete := float32(t.goodPieces*100) / float32(t.totalPieces)
 	fmt.Println("In cycle list")
 	fmt.Println("At this time Ready List is : ", t.readyList)
+	fmt.Println("Active list is :", t.activeList)
 	fmt.Println("Percent complete ", percentComplete, "%")
 	for i, peer := range t.readyList {
 		if (!t.pieceSet.IsSet(t.activepieceindex)) && t.readyList[i].have.IsSet(t.activepieceindex) {
